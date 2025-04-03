@@ -7,5 +7,4 @@ services:
     startCommand: "gunicorn --workers=4 --bind 0.0.0.0:8000 app:app"
     envVars:
       - key: PORT
-        value: 8000
-        
+        value: "8000"
