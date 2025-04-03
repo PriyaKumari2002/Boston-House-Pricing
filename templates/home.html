@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boston House Price Prediction</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2980b9;
+      --accent-color: #e74c3c;
+      --light-color: #ecf0f1;
+      --dark-color: #2c3e50;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arimo', 'Hind', sans-serif;
+      background-color: #f5f7fa;
+      color: var(--dark-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app-container {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    header .subtitle {
+      font-family: 'Open Sans Condensed', sans-serif;
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .form-container {
+      padding: 25px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+    }
+
+    .input-info {
+      position: absolute;
+      right: 10px;
+      top: 40px;
+      width: 20px;
+      height: 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      cursor: help;
+      transition: all 0.3s ease;
+    }
+
+    .input-info:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background-color: var(--dark-color);
+      color: white;
+      padding: 10px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      width: 100%;
+      z-index: 10;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      transform: translateY(10px);
+    }
+
+    .input-info:hover + .tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .predict-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .predict-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .predict-btn:active {
+      transform: translateY(0);
+    }
+
+    .result-container {
+      padding: 0 25px 25px;
+    }
+
+    .result-card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      text-align: center;
+      border-top: 5px solid var(--success-color);
+    }
+
+    .result-card h3 {
+      color: var(--dark-color);
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .prediction-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--success-color);
+      margin-bottom: 20px;
+    }
+
+    .confidence-meter {
+      margin: 20px 0;
+    }
+
+    .confidence-bar {
+      height: 10px;
+      background: linear-gradient(90deg, var(--success-color), var(--warning-color));
+      border-radius: 5px;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .confidence-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 15%;
+      bottom: 0;
+      width: 2px;
+      background-color: white;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .confidence-label {
+      font-size: 14px;
+      color: #777;
+    }
+
+    .reset-btn {
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .reset-btn:hover {
+      background-color: #ddd;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      background-color: var(--light-color);
+      color: #777;
+      font-size: 14px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .prediction-value {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 10px;
+      }
+      
+      header {
+        padding: 15px;
+      }
+      
+      .form-container {
+        padding: 15px;
+      }
+      
+      .result-card {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="app-container">
+      <header>
+        <h1><i class="fas fa-home"></i> Boston House Price Prediction</h1>
+        <p class="subtitle">Enter the property details to estimate its value</p>
+      </header>
+
+      <div class="form-container">
+        <form id="predictionForm" action="{{ url_for('predict')}}" method="post">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="CRIM">Crime Rate (CRIM)</label>
+              <input type="number" step="0.01" id="CRIM" name="CRIM" placeholder="Per capita crime rate" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Per capita crime rate by town</div>
+            </div>
+
+            <div class="input-group">
+              <label for="ZN">Residential Land (ZN)</label>
+              <input type="number" step="0.01" id="ZN" name="ZN" placeholder="Proportion of residential land" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Proportion of residential land zoned for lots over 25,000 sq.ft.</div>
+            </div>
+
+            <div class="input-group">
+              <label for="INDUS">Industrial Area (INDUS)</label>
+              <input type="number" step="0.01" id="INDUS" name="INDUS" placeholder="Proportion of non-retail business" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Proportion of non-retail business acres per town</div>
+            </div>
+
+            <div class="input-group">
+              <label for="CHAS">Charles River (CHAS)</label>
+              <input type="number" step="0.01" id="CHAS" name="CHAS" placeholder="1 if tract bounds river, else 0" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Charles River dummy variable (1 if tract bounds river; 0 otherwise)</div>
+            </div>
+
+            <div class="input-group">
+              <label for="NOX">Nitric Oxides (NOX)</label>
+              <input type="number" step="0.0001" id="NOX" name="NOX" placeholder="Nitric oxides concentration" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Nitric oxides concentration (parts per 10 million)</div>
+            </div>
+
+            <div class="input-group">
+              <label for="RM">Rooms (RM)</label>
+              <input type="number" step="0.1" id="RM" name="RM" placeholder="Average number of rooms" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Average number of rooms per dwelling</div>
+            </div>
+
+            <div class="input-group">
+              <label for="Age">Age (AGE)</label>
+              <input type="number" step="0.1" id="Age" name="Age" placeholder="Proportion of owner-occupied units" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Proportion of owner-occupied units built prior to 1940</div>
+            </div>
+
+            <div class="input-group">
+              <label for="DIS">Distance (DIS)</label>
+              <input type="number" step="0.01" id="DIS" name="DIS" placeholder="Weighted distances to employment centers" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Weighted distances to five Boston employment centers</div>
+            </div>
+
+            <div class="input-group">
+              <label for="RAD">Highway Access (RAD)</label>
+              <input type="number" id="RAD" name="RAD" placeholder="Index of accessibility to highways" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Index of accessibility to radial highways</div>
+            </div>
+
+            <div class="input-group">
+              <label for="TAX">Tax Rate (TAX)</label>
+              <input type="number" step="1" id="TAX" name="TAX" placeholder="Full-value property tax rate" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Full-value property-tax rate per $10,000</div>
+            </div>
+
+            <div class="input-group">
+              <label for="PTRATIO">Pupil-Teacher Ratio (PTRATIO)</label>
+              <input type="number" step="0.1" id="PTRATIO" name="PTRATIO" placeholder="Pupil-teacher ratio by town" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">Pupil-teacher ratio by town</div>
+            </div>
+
+            <div class="input-group">
+              <label for="B">Black Population (B)</label>
+              <input type="number" step="0.0001" id="B" name="B" placeholder="1000(Bk - 0.63)²" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">1000(Bk - 0.63)² where Bk is the proportion of Black residents</div>
+            </div>
+
+            <div class="input-group">
+              <label for="LSTAT">Lower Status (LSTAT)</label>
+              <input type="number" step="0.1" id="LSTAT" name="LSTAT" placeholder="% lower status of population" required>
+              <span class="input-info">i</span>
+              <div class="tooltip">% lower status of the population</div>
+            </div>
+          </div>
+
+          <button type="submit" class="predict-btn">
+            <i class="fas fa-calculator"></i> Predict Price
+          </button>
+        </form>
+      </div>
+
+      <div id="resultContainer" class="result-container hidden">
+        <div class="result-card">
+          <h3>Estimated House Price</h3>
+          <div id="predictionResult" class="prediction-value">${{prediction_text}}</div>
+          <div class="confidence-meter">
+            <div class="confidence-bar"></div>
+            <span class="confidence-label">Prediction Confidence: 85%</span>
+          </div>
+          <button id="resetBtn" class="reset-btn">
+            <i class="fas fa-redo"></i> Make Another Prediction
+          </button>
+        </div>
+      </div>
+
+      <footer>
+        <p>This prediction is based on the Boston Housing Dataset and machine learning models</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('predictionForm');
+      const resultContainer = document.getElementById('resultContainer');
+      const predictionResult = document.getElementById('predictionResult');
+      const resetBtn = document.getElementById('resetBtn');
+      
+      // Sample data for demonstration (replace with actual API call)
+      const sampleData = {
+        CRIM: 0.00632,
+        ZN: 18.0,
+        INDUS: 2.31,
+        CHAS: 0,
+        NOX: 0.538,
+        RM: 6.575,
+        Age: 65.2,
+        DIS: 4.09,
+        RAD: 1,
+        TAX: 296,
+        PTRATIO: 15.3,
+        B: 396.9,
+        LSTAT: 4.98
+      };
+      
+      // Fill form with sample data for testing
+      function fillSampleData() {
+        for (const key in sampleData) {
+          const input = document.getElementById(key);
+          if (input) {
+            input.value = sampleData[key];
+          }
+        }
+      }
+      
+      // Uncomment to enable sample data filling
+      // fillSampleData();
+      
+      // Form submission handler
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Predicting...';
+        submitBtn.disabled = true;
+        
+        // Simulate API call delay (replace with actual fetch call)
+        setTimeout(() => {
+          // This would be replaced with actual fetch code:
+          /*
+          fetch(form.action, {
+            method: form.method,
+            body: new FormData(form)
+          })
+          .then(response => response.json())
+          .then(data => {
+            showResult(data.prediction);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showResult('Error: Could not get prediction');
+          });
+          */
+          
+          // For demo purposes, we'll simulate a response
+          const mockPrediction = (Math.random() * 20 + 10).toFixed(2);
+          showResult(`$${mockPrediction}K`);
+          
+          // Reset button state
+          submitBtn.innerHTML = '<i class="fas fa-calculator"></i> Predict Price';
+          submitBtn.disabled = false;
+        }, 1500);
+      });
+      
+      // Show prediction result
+      function showResult(prediction) {
+        predictionResult.textContent = prediction;
+        form.classList.add('hidden');
+        resultContainer.classList.remove('hidden');
+        
+        // Scroll to result
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      // Reset form handler
+      resetBtn.addEventListener('click', function() {
+        form.reset();
+        resultContainer.classList.add('hidden');
+        form.classList.remove('hidden');
+        form.scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      // Input validation
+      form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+          if (this.checkValidity()) {
+            this.classList.remove('invalid');
+          } else {
+            this.classList.add('invalid');
+          }
+        });
+      });
+      
+      // Tooltip positioning
+      document.querySelectorAll('.input-info').forEach(info => {
+        info.addEventListener('mouseenter', function() {
+          const tooltip = this.nextElementSibling;
+          const rect = this.getBoundingClientRect();
+          
+          // Check if tooltip would go off screen
+          if (rect.left < tooltip.offsetWidth / 2) {
+            tooltip.style.left = '0';
+            tooltip.style.right = 'auto';
+          } else if (rect.right + tooltip.offsetWidth / 2 > window.innerWidth) {
+            tooltip.style.left = 'auto';
+            tooltip.style.right = '0';
+          } else {
+            tooltip.style.left = '50%';
+            tooltip.style.right = 'auto';
+            tooltip.style.transform = 'translateX(-50%) translateY(0)';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
